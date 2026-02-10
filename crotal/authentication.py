@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, Response
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, ValidationError
 from typing import Annotated
@@ -7,7 +7,9 @@ from itsdangerous import BadSignature, Signer
 from .config import get_settings
 from .models import AuthTokens, UserInfo
 
-access_token_scheme = OAuth2PasswordBearer(tokenUrl=get_settings().auth_login_url, auto_error=False)
+access_token_scheme = OAuth2PasswordBearer(
+    tokenUrl=get_settings().auth_login_url, auto_error=False
+)
 
 BearerAccessToken = Annotated[str | None, Depends(access_token_scheme)]
 
@@ -22,6 +24,27 @@ def ExtractFromCookies[T: BaseModel](model: type[T]):
             return None
 
     return dependency
+
+
+def set_cookie(response: Response, name: str, value: str):
+    """
+    Set a cookie in the response.
+    """
+    settings = get_settings()
+    signer = Signer(settings.cookie_secret)
+    signed_value = signer.sign(value.encode()).decode()
+
+    response.set_cookie(
+        name,
+        signed_value,
+        max_age=60 * 60 * 24 * 40,
+        expires=60 * 60 * 24 * 40,
+        # expires=datetime.now(UTC) + timedelta(days=40),
+        secure=True,
+        samesite="none",
+        httponly=True,
+        domain=settings.root_domain,
+    )
 
 
 UnverifiedAuthTokens = Annotated[
@@ -57,14 +80,18 @@ async def get_user_info(
         return None
     if header_access_token:
         try:
-            payload = jwt.decode(header_access_token, get_settings().jwt_secret, algorithms=["HS256"])
+            payload = jwt.decode(
+                header_access_token, get_settings().jwt_secret, algorithms=["HS256"]
+            )
             return UserInfo(**payload)
         except ExpiredSignatureError:
             pass
     if cookie_auth_tokens:
         try:
             payload = jwt.decode(
-                cookie_auth_tokens.access_token, get_settings().jwt_secret, algorithms=["HS256"]
+                cookie_auth_tokens.access_token,
+                get_settings().jwt_secret,
+                algorithms=["HS256"],
             )
             return UserInfo(**payload)
         except ExpiredSignatureError:
