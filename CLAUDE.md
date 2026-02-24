@@ -10,7 +10,8 @@ crotal/
   models.py          - Pydantic models (AuthTokens, UserInfo)
   authentication.py  - token extraction, verification, user resolution (OptionalUser, User)
   authorization.py   - role-based access control (Admin, System, AdminOrSelf, SystemOrSelf, MustBeSelf)
-  __init__.py        - re-exports public API
+  testing.py         - test utility for consuming projects (authenticated_client)
+  __init__.py        - re-exports public API (testing is a separate import)
 ```
 
 ## Architecture
@@ -29,3 +30,6 @@ Roles: USER, SYSTEM, ADMIN. ADMIN is the highest privilege, SYSTEM is mid-tier.
 
 - `test_authentication.py` - integration tests using FastAPI TestClient
 - `test_authorization.py` - direct unit tests on authorization functions
+- `test_testing.py` - tests for the `crotal.testing` utility
+
+Env vars required for tests: `AUTH_LOGIN_URL`, `JWT_SECRET`, `COOKIE_SECRET`, `ROOT_DOMAIN`.

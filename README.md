@@ -78,6 +78,21 @@ async def transfer(sender_id: int, receiver_id: int, user: User):
     ...
 ```
 
+## Testing utility
+
+Crotal provides a test helper for consuming projects. Import from `crotal.testing` and pass your `TestClient` to get an authenticated client with a Bearer token injected:
+
+```python
+from starlette.testclient import TestClient
+from crotal.testing import authenticated_client
+
+client = authenticated_client(TestClient(app), id=5, name="alice", role="ADMIN")
+resp = client.get("/admin/dashboard")
+assert resp.status_code == 200
+```
+
+All parameters (`id`, `name`, `role`) are optional and default to a regular user.
+
 ## Roles
 
 | Role     | Description                     |
