@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     cookie_secret: str
     root_domain: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 @lru_cache
