@@ -19,8 +19,7 @@ def ExtractFromCookies[T: BaseModel](model: type[T]):
         try:
             data = {field: request.cookies.get(field) for field in model.model_fields}
             return model(**data)
-        except ValidationError as e:
-            print(e.errors())
+        except ValidationError:
             return None
 
     return dependency
